@@ -32,7 +32,7 @@ endif()
 
 # 添加可执行文件
 set(TARGET ${PROJECT_NAME}-${CMAKE_SYSTEM_NAME})
-set(SRC_FILES hello.cpp)
+set(SRC_FILES 11-3.cpp)
 add_executable(${TARGET} ${SRC_FILES})
 
 # 链接所有SDL2库
