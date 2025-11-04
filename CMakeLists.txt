@@ -32,7 +32,11 @@ endif()
 
 # 添加可执行文件
 set(TARGET ${PROJECT_NAME}-${CMAKE_SYSTEM_NAME})
-set(SRC_FILES 11-3.cpp)
+set(SRC_FILES   ./test/main.cpp
+                ./src/Game.cpp
+                ./src/ScreenMain.cpp
+                )
+
 add_executable(${TARGET} ${SRC_FILES})
 
 # 链接所有SDL2库
@@ -43,3 +47,9 @@ target_link_libraries(${TARGET}
     SDL2_ttf::SDL2_ttf 
     SDL2_mixer::SDL2_mixer
 ) # find_package :: 命名空间
+
+# 查找include目录内的头文件
+target_include_directories(${TARGET}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
