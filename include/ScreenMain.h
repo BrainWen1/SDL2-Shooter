@@ -17,9 +17,11 @@ public:
 
     void init() override;
     void clean() override;
-    void update() override;
+    void update(float deltaTime) override;
     void render() override;
     void handleEvents(SDL_Event* event) override;
+
+    void keyboardControls(float deltaTime);
 
 private:
     // 主屏幕特有的成员变量

@@ -43,6 +43,11 @@ private:
     Game();
     Game(const Game&) = delete;
     Game& operator=(const Game&) = delete;
+
+    // 游戏帧率
+    const int FPS = 120;
+    Uint32 frameTime;
+    float deltaTime; // 每帧时间间隔
 };
 
 #endif // GAME_H

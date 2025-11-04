@@ -9,6 +9,10 @@ Game::~Game() { // 析构函数
 }
 
 void Game::init() { // 初始化游戏
+
+    // 创建帧率
+    frameTime = 1000 / FPS;
+
     // 初始化SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "SDL_Init Error: %s", SDL_GetError()); // 报告错误信息
@@ -48,18 +52,32 @@ void Game::init() { // 初始化游戏
 }
 
 void Game::run() {
+
     // 运行游戏主循环
     while (isRunning) {
+        auto frameStart = SDL_GetTicks(); // 帧开始时间
+
         SDL_Event event;
         handleEvent(&event); // 处理事件
 
         update(); // 更新游戏状态
 
         render(); // 渲染游戏画面
+
+        auto frameEnd = SDL_GetTicks(); // 帧结束时间        
+        // 计算帧时间并延时以维持稳定帧率
+        auto diff = frameEnd - frameStart;
+        if (diff < frameTime) {
+            SDL_Delay(frameTime - diff); // 延时以维持稳定帧率
+            deltaTime = frameTime / 1000.0f; // 转换为秒
+        } else { // 如果帧时间超过预期，直接使用实际帧时间
+            deltaTime = diff / 1000.0f; // 实际帧时间
+        }
     }
 }
 
 void Game::clean() { // 清理资源
+
     // 清理当前屏幕
     if (currentScreen != nullptr) {
         currentScreen->clean();
@@ -100,6 +118,7 @@ void Game::changeScreen(Screen* newScreen) { // 切换屏幕
 }
 
 void Game::handleEvent(SDL_Event* event) {
+
     while (SDL_PollEvent(event)) { // 轮询事件
         if (event->type == SDL_QUIT) { // 处理退出事件
            isRunning = false;
@@ -109,12 +128,14 @@ void Game::handleEvent(SDL_Event* event) {
 }
 
 void Game::update() {
+
     if (currentScreen != nullptr) {
-        currentScreen->update();
+        currentScreen->update(this->deltaTime);
     }
 }
 
 void Game::render() {
+
     // 清屏
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // 黑色背景
     SDL_RenderClear(renderer);

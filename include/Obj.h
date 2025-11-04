@@ -12,6 +12,7 @@ public:
     int width = 50; // 玩家宽度
     int height = 50; // 玩家高度
 
+    float speed = 200.0f; // 玩家移动速度（像素/秒）
 };
 
 #endif // OBJ_H
