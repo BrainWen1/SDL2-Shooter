@@ -86,4 +86,26 @@ public:
     Uint32 FPS = 10; // 动画帧率
 };
 
+enum class ItemType {
+    HEALTH_PACK, // 血包
+    SHIELD, // 护盾
+    POWER_UP // 强化
+};
+
+// 道具
+class Item {
+public:
+    SDL_Texture* texture = nullptr; // 道具纹理
+    SDL_FPoint position = {0, 0}; // 道具位置：浮点数坐标
+    int width = 0; // 道具宽度
+    int height = 0; // 道具高度
+
+    SDL_FPoint direction = {0.0f, 0.0f}; // 道具移动方向
+
+    ItemType type = ItemType::HEALTH_PACK; // 道具类型
+
+    int speed = 200; // 道具移动速度（像素/秒）
+    int bounceCount = 3; // 道具弹跳次数
+};
+
 #endif // OBJ_H

@@ -42,9 +42,15 @@ public:
     void enemyExplosion(Enemy* enemy); // 敌人爆炸效果
 
     void updatePlayer(); // 更新玩家状态
+    void renderPlayer(); // 渲染玩家
 
     void updateExplosions(); // 更新爆炸效果状态
     void renderExplosions(); // 渲染爆炸效果
+
+    void dropItem(Enemy *enemy); // 掉落道具
+    void updateItems(float deltaTime); // 更新道具状态
+    void renderItems(); // 渲染道具
+    void playerGetItem(Item* item); // 玩家获取道具
 
 private:
     // 主屏幕特有的成员变量
@@ -63,6 +69,11 @@ private:
 
     Explosion explosion; // 爆炸效果模板
     std::list<Explosion*> explosions; // 爆炸效果列表
+
+    Item item_HEALTH_PACK; // 血包道具模板
+    Item item_SHIELD; // 护盾道具模板
+    Item item_POWER_UP; // 强化道具模板
+    std::list<Item*> items; // 道具列表
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器

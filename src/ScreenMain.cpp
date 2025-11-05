@@ -57,6 +57,12 @@ void ScreenMain::init() { // 初始化主屏幕
 
     // 保持一帧是正方形
     explosion.width = explosion.height;
+
+    // 初始化道具纹理
+    item_HEALTH_PACK.texture = IMG_LoadTexture(game.getRenderer(), "../assets/image/bonus_life.png");
+    SDL_QueryTexture(item_HEALTH_PACK.texture, nullptr, nullptr, &item_HEALTH_PACK.width, &item_HEALTH_PACK.height);
+    item_HEALTH_PACK.width /= 3;
+    item_HEALTH_PACK.height /= 3;
 }
 
 void ScreenMain::clean() { // 清理主屏幕
@@ -114,6 +120,18 @@ void ScreenMain::clean() { // 清理主屏幕
         delete explosion;
     }
     explosions.clear();
+
+    // 清理道具模板纹理
+    if (item_HEALTH_PACK.texture != nullptr) {
+        SDL_DestroyTexture(item_HEALTH_PACK.texture);
+        item_HEALTH_PACK.texture = nullptr;
+    }
+
+    // 清理道具列表
+    for (auto &item : items) {
+        delete item;
+    }
+    items.clear();
 }
 
 void ScreenMain::update(float deltaTime) { // 更新主屏幕
@@ -125,13 +143,21 @@ void ScreenMain::update(float deltaTime) { // 更新主屏幕
     updateEnemyProjectiles(deltaTime); // 更新敌人子弹状态
     updatePlayer(); // 更新玩家状态
     updateExplosions(); // 更新爆炸效果状态
+    updateItems(deltaTime); // 更新道具状态
 }
 
 void ScreenMain::render() { // 渲染主屏幕
 
-    // 渲染玩家子弹
-    renderPlayerProjectiles(); // 写在玩家前面，确保子弹被玩家覆盖
-    
+    renderPlayerProjectiles(); // 渲染子弹：放在玩家前面，确保子弹被玩家覆盖
+    renderPlayer(); // 渲染玩家
+    renderEnemies(); // 渲染敌人
+    renderEnemyProjectiles(); // 渲染敌人子弹
+    renderItems(); // 渲染道具：放在爆炸上方，以免被覆盖
+    renderExplosions(); // 渲染爆炸效果
+}
+
+void ScreenMain::renderPlayer() { // 渲染玩家
+
     // 将玩家的纹理绘制到屏幕上
     if (isdead != true) { // 玩家存活时才渲染
         SDL_Rect rect = {
@@ -142,18 +168,9 @@ void ScreenMain::render() { // 渲染主屏幕
         };
         SDL_RenderCopy(game.getRenderer(), player.texture, nullptr, &rect);
     }
-
-    // 渲染敌人
-    renderEnemies();
-
-    // 渲染敌人子弹
-    renderEnemyProjectiles();
-
-    // 渲染爆炸效果
-    renderExplosions();
 }
 
-void ScreenMain::handleEvents(SDL_Event* event) {
+void ScreenMain::handleEvents(SDL_Event*) {
     // 处理主屏幕的事件
 }
 
@@ -463,6 +480,9 @@ void ScreenMain::enemyExplosion(Enemy* enemy) { // 敌人爆炸效果
     explosions.push_back(newExplosion);
 
     newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
+
+    // 有一定概率掉落道具
+    dropItem(enemy);
 }
 
 void ScreenMain::updatePlayer() { // 更新玩家状态
@@ -549,5 +569,119 @@ void ScreenMain::renderExplosions() { // 渲染爆炸效果
             explosion->height
         };
         SDL_RenderCopy(game.getRenderer(), explosion->texture, &srcRect, &destRect);
+    }
+}
+
+void ScreenMain::dropItem(Enemy *enemy) { // 掉落道具
+
+
+    if (dis(gen) <= 0.5f) { // 50% 概率掉落血包
+
+        Item* newItem = new Item(item_HEALTH_PACK); // 使用血包模板初始化新道具
+
+        if (newItem != nullptr) {
+            // 设置道具位置：敌人正中心
+            newItem->position.x = enemy->position.x + (enemy->width - newItem->width) / 2.0f;
+            newItem->position.y = enemy->position.y + (enemy->height - newItem->height) / 2.0f;
+
+            // 设置方向
+            float angle = static_cast<float>(dis(gen) * 2.0f * M_PI); // 随机角度
+            newItem->direction.x = cosf(angle);
+            newItem->direction.y = sinf(angle);
+
+            // 将新道具添加到道具列表
+            items.push_back(newItem);
+        }
+    }
+
+    // 可以在这里添加更多道具类型和掉落概率
+}
+
+void ScreenMain::updateItems(float deltaTime) { // 更新道具状态
+
+    for (auto it = items.begin(); it != items.end(); ) {
+        Item* item = *it; // 获取当前道具指针
+
+        // 更新道具位置，按方向移动
+        item->position.x += item->direction.x * item->speed * deltaTime;
+        item->position.y += item->direction.y * item->speed * deltaTime;
+
+        // 处理反弹逻辑
+        if (item->bounceCount > 0) {
+            if (item->position.x < 0 || item->position.x + item->width > game.getScreenWidth()) {
+                item->direction.x = -item->direction.x; // 水平反弹
+                --item->bounceCount; // 反弹次数减一
+            }
+            if (item->position.y < 0 || item->position.y + item->height > game.getScreenHeight()) {
+                item->direction.y = -item->direction.y; // 垂直反弹
+                --item->bounceCount; // 反弹次数减一
+            }
+        }
+
+        // 如果道具移出屏幕，则删除该道具
+        if (item->position.y > game.getScreenHeight() ||
+            item->position.y + item->height < 0 ||
+            item->position.x + item->width < 0 ||
+            item->position.x > game.getScreenWidth()) {
+                
+            // 道具越界 -> 销毁
+            delete item; // 释放内存
+            it = items.erase(it); // 从列表中移除道具
+
+        } else {
+
+            // 检查道具是否被玩家拾取
+            SDL_Rect rect = {
+                static_cast<int>(item->position.x),
+                static_cast<int>(item->position.y),
+                item->width,
+                item->height
+            };
+            SDL_Rect playerRect = {
+                static_cast<int>(player.position.x),
+                static_cast<int>(player.position.y),
+                player.width,
+                player.height
+            };
+            // 玩家存活时才检测碰撞
+            if (isdead != true && SDL_HasIntersection(&rect, &playerRect)) {
+
+                playerGetItem(item); // 处理玩家获取道具的效果
+
+                delete item; // 释放内存
+                it = items.erase(it); // 从列表中移除道具，并移动到下一个道具
+            } else {
+                ++it; // 移动到下一个道具
+            }
+        }
+    }
+}
+
+void ScreenMain::renderItems() { // 渲染道具
+
+    for (const auto &item : items) {
+        SDL_Rect rect = {
+            static_cast<int>(item->position.x),
+            static_cast<int>(item->position.y),
+            item->width,
+            item->height
+        };
+        SDL_RenderCopy(game.getRenderer(), item->texture, nullptr, &rect);
+    }
+}
+
+void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效果
+
+    // 检查玩家是否死亡
+    if (isdead) return;
+
+    // 根据道具类型应用效果
+    if (item->type == ItemType::HEALTH_PACK) { // 血包
+
+        player.health += 1; // 增加生命值
+
+        if (player.health > player.MaxHealth) { // 不超过最大生命值
+           player.health = player.MaxHealth;
+        }
     }
 }
