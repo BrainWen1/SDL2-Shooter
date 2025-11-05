@@ -16,6 +16,10 @@ public:
 
     Uint32 cooldownTime = 300; // 射击冷却时间（毫秒）
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
+
+    // 玩家生命值
+    int health = 5;
+    int MaxHealth = 5; // 玩家最大生命值
 };
 
 // 玩家子弹
@@ -28,6 +32,9 @@ public:
     int height = 0; // 子弹高度
 
     float speed = 400.0f; // 子弹移动速度（像素/秒）
+
+    // 子弹攻击力
+    int damage = 1;
 };
 
 // 敌人
@@ -41,6 +48,12 @@ public:
 
     Uint32 cooldownTime = 1500; // 射击冷却时间（毫秒）
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
+
+    // 敌人生命值
+    int health = 2;
+
+    // 敌人碰撞伤害
+    int collisionDamage = 1;
 };
 
 // 敌人子弹
@@ -54,6 +67,9 @@ public:
 
     // 子弹朝向
     SDL_FPoint direction = {0.0f, 1.0f}; // 默认向下
+
+    // 子弹攻击力
+    int damage = 1;
 };
 
 #endif // OBJ_H

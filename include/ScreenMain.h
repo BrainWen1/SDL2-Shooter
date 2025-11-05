@@ -28,20 +28,25 @@ public:
     void PlayerShoot(); // 玩家射击
     void EnemyShoot(Enemy* enemy); // 敌人射击
 
-    void updatePlayerProjectiles(float deltaTime); // 更新玩家子弹位置
+    void updatePlayerProjectiles(float deltaTime); // 更新玩家子弹状态
     void renderPlayerProjectiles(); // 渲染玩家子弹
 
     void spawnEnemy(); // 生成敌人
-    void updateEnemies(float deltaTime); // 更新敌人位置
+    void updateEnemies(float deltaTime); // 更新敌人状态
     void renderEnemies(); // 渲染敌人
 
     SDL_FPoint getDirection(Enemy* enemy); // 计算敌人子弹方向
-    void updateEnemyProjectiles(float deltaTime); // 更新敌人子弹位置
+    void updateEnemyProjectiles(float deltaTime); // 更新敌人子弹状态
     void renderEnemyProjectiles(); // 渲染敌人子弹
+
+    void enemyExplosion(Enemy* enemy); // 敌人爆炸效果
+
+    void updatePlayer(float deltaTime); // 更新玩家状态
 
 private:
     // 主屏幕特有的成员变量
     Player player; // 玩家对象
+    bool isdead = false; // 玩家是否死亡
     Game &game;
 
     PlayerProjectile playerprojectile; // 单个玩家子弹模板
