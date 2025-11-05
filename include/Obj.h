@@ -13,6 +13,20 @@ public:
     int height = 50; // 玩家高度
 
     float speed = 200.0f; // 玩家移动速度（像素/秒）
+
+    Uint32 cooldownTime = 500; // 射击冷却时间（毫秒）
+    Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
+};
+
+class PlayerProjectile {
+public:
+    SDL_Texture* texture = nullptr; // 子弹纹理
+    SDL_FPoint position = {0, 0}; // 子弹位置：浮点数坐标
+
+    int width = 0; // 子弹宽度
+    int height = 0; // 子弹高度
+
+    float speed = 300.0f; // 子弹移动速度（像素/秒）
 };
 
 #endif // OBJ_H
