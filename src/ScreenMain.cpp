@@ -40,6 +40,13 @@ void ScreenMain::init() { // 初始化主屏幕
     // 缩放敌人尺寸
     enemy.width /= 4;
     enemy.height /= 4;
+
+    // 初始化敌人子弹纹理
+    enemyprojectile.texture = IMG_LoadTexture(game.getRenderer(), "../assets/image/bullet-2.png");
+    SDL_QueryTexture(enemyprojectile.texture, nullptr, nullptr, &enemyprojectile.width, &enemyprojectile.height);
+    // 缩放敌人子弹尺寸
+    enemyprojectile.width /= 4;
+    enemyprojectile.height /= 4;
 }
 
 void ScreenMain::clean() { // 清理主屏幕
@@ -58,7 +65,6 @@ void ScreenMain::clean() { // 清理主屏幕
 
     // 清理玩家子弹列表
     for (auto &projectile : playerProjectiles) {
-        // 不销毁 projectile->texture（共享模板纹理），只释放对象
         projectile->texture = nullptr;
         delete projectile;
     }
@@ -72,10 +78,23 @@ void ScreenMain::clean() { // 清理主屏幕
 
     // 清理敌人列表
     for (auto &enemy : enemies) {
-        // 不销毁 enemy->texture（共享模板纹理），只释放对象
         enemy->texture = nullptr;
         delete enemy;
     }
+    enemies.clear();
+
+    // 清理敌人子弹模板纹理
+    if (enemyprojectile.texture != nullptr) {
+        SDL_DestroyTexture(enemyprojectile.texture);
+        enemyprojectile.texture = nullptr;
+    }
+
+    // 清理敌人子弹列表
+    for (auto &projectile : enemyProjectiles) {
+        projectile->texture = nullptr;
+        delete projectile;
+    }
+    enemyProjectiles.clear();
 }
 
 void ScreenMain::update(float deltaTime) { // 更新主屏幕
@@ -84,6 +103,7 @@ void ScreenMain::update(float deltaTime) { // 更新主屏幕
     updatePlayerProjectiles(deltaTime); // 更新玩家子弹位置
     spawnEnemy(); // 生成敌人
     updateEnemies(deltaTime); // 更新敌人位置
+    updateEnemyProjectiles(deltaTime); // 更新敌人子弹位置
 }
 
 void ScreenMain::render() { // 渲染主屏幕
@@ -102,6 +122,9 @@ void ScreenMain::render() { // 渲染主屏幕
 
     // 渲染敌人
     renderEnemies();
+
+    // 渲染敌人子弹
+    renderEnemyProjectiles();
 }
 
 void ScreenMain::handleEvents(SDL_Event* event) {
@@ -174,9 +197,9 @@ void ScreenMain::updatePlayerProjectiles(float deltaTime) { // 更新玩家子�
 
         // 如果子弹移出屏幕顶部，则删除该子弹
         if (projectile->position.y + projectile->height < 0) {
+
             // 子弹越界 -> 销毁
             projectile->texture = nullptr; // 置空
-
             delete projectile; // 释放内存
             it = playerProjectiles.erase(it); // 从列表中移除子弹
         } else {
@@ -200,7 +223,7 @@ void ScreenMain::renderPlayerProjectiles() { // 渲染玩家子弹
 
 void ScreenMain::spawnEnemy() { // 生成敌人
 
-    if (dis(gen) <= 0.8f / 60.0f) { // 每秒约生成1个敌人
+    if (dis(gen) <= 0.65f / 60.0f) { // 敌人生成概率：每秒约生成0.65个敌人
         Enemy* newEnemy = new Enemy(enemy); // 使用模板初始化新敌人
 
         // 设置敌人初始位置：屏幕顶部随机位置
@@ -214,18 +237,25 @@ void ScreenMain::spawnEnemy() { // 生成敌人
 
 void ScreenMain::updateEnemies(float deltaTime) { // 更新敌人位置
 
+    auto currentTime = SDL_GetTicks(); // 获取当前时间
+
     for (auto it = enemies.begin(); it != enemies.end(); ) {
         Enemy* enemy = *it; // 获取当前敌人指针
         enemy->position.y += enemy->speed * deltaTime; // 更新敌人位置，向下移动
 
         // 如果敌人移出屏幕底部，则删除该敌人
         if (enemy->position.y > game.getScreenHeight()) {
+
             // 敌人越界 -> 销毁
             enemy->texture = nullptr; // 置空
-
             delete enemy; // 释放内存
             it = enemies.erase(it); // 从列表中移除敌人
         } else {
+            if (currentTime - enemy->lastShotTime >= enemy->cooldownTime) {
+                EnemyShoot(enemy);
+                enemy->lastShotTime = currentTime; // 更新上次射击时间
+            }
+
             ++it; // 移动到下一个敌人
         }
     }
@@ -241,5 +271,81 @@ void ScreenMain::renderEnemies() { // 渲染敌人
             enemy->height
         };
         SDL_RenderCopy(game.getRenderer(), enemy->texture, nullptr, &rect);
+    }
+}
+
+void ScreenMain::EnemyShoot(Enemy* enemy) { // 敌人射击
+
+    // 创建一个新的敌人子弹
+    EnemyProjectile *projectile = new EnemyProjectile(enemyprojectile); // 使用模板初始化新子弹
+
+    // 设置子弹初始位置：敌人正中心
+    projectile->position.x = enemy->position.x + (enemy->width - projectile->width) / 2.0f;
+    projectile->position.y = enemy->position.y + (enemy->height - projectile->height) / 2.0f;
+
+    // 确定子弹朝向玩家
+    projectile->direction = getDirection(enemy);
+
+    // 将新子弹添加到敌人子弹列表
+    enemyProjectiles.push_back(projectile);
+}
+
+SDL_FPoint ScreenMain::getDirection(Enemy* enemy) { // 计算敌人子弹方向
+
+    // 获取玩家和敌人中心点坐标差
+    float dx = (player.position.x + player.width / 2.0f) - (enemy->position.x + enemy->width / 2.0f);
+    float dy = (player.position.y + player.height / 2.0f) - (enemy->position.y + enemy->height / 2.0f);
+    float length = sqrtf(dx * dx + dy * dy);
+
+    // 归一化方向向量
+    if (length != 0) {
+        dx /= length;
+        dy /= length;
+    } else {
+        dx = 0.0f;
+        dy = 1.0f; // 默认向下
+    }
+
+    return SDL_FPoint{dx, dy};
+}
+
+void ScreenMain::updateEnemyProjectiles(float deltaTime) { // 更新敌人子弹位置
+
+    for (auto it = enemyProjectiles.begin(); it != enemyProjectiles.end(); ) {
+        EnemyProjectile* projectile = *it; // 获取当前子弹指针
+
+        // 更新子弹位置，按方向移动
+        projectile->position.x += projectile->direction.x * projectile->speed * deltaTime;
+        projectile->position.y += projectile->direction.y * projectile->speed * deltaTime;
+
+        // 如果子弹移出屏幕，则删除该子弹
+        if (projectile->position.y > game.getScreenHeight() ||
+            projectile->position.y + projectile->height < 0 ||
+            projectile->position.x + projectile->width < 0 ||
+            projectile->position.x > game.getScreenWidth()) {
+                
+            // 子弹越界 -> 销毁
+            projectile->texture = nullptr; // 置空
+            delete projectile; // 释放内存
+            it = enemyProjectiles.erase(it); // 从列表中移除子弹
+        } else {
+            ++it; // 移动到下一个子弹
+        }
+    }
+}
+
+void ScreenMain::renderEnemyProjectiles() { // 渲染敌人子弹
+
+    for (const auto &projectile : enemyProjectiles) {
+        SDL_Rect rect = {
+            static_cast<int>(projectile->position.x),
+            static_cast<int>(projectile->position.y),
+            projectile->width,
+            projectile->height
+        };
+        // SDL_RenderCopy(game.getRenderer(), projectile->texture, nullptr, &rect);
+        // 旋转子弹以匹配方向
+        float angle = atan2(projectile->direction.y, projectile->direction.x) * 180.0f / M_PI - 90.0f;
+        SDL_RenderCopyEx(game.getRenderer(), projectile->texture, nullptr, &rect, angle, nullptr, SDL_FLIP_NONE);
     }
 }

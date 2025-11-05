@@ -12,9 +12,9 @@ public:
     int width = 50; // 玩家宽度
     int height = 50; // 玩家高度
 
-    float speed = 200.0f; // 玩家移动速度（像素/秒）
+    float speed = 250.0f; // 玩家移动速度（像素/秒）
 
-    Uint32 cooldownTime = 500; // 射击冷却时间（毫秒）
+    Uint32 cooldownTime = 300; // 射击冷却时间（毫秒）
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
 };
 
@@ -27,7 +27,7 @@ public:
     int width = 0; // 子弹宽度
     int height = 0; // 子弹高度
 
-    float speed = 300.0f; // 子弹移动速度（像素/秒）
+    float speed = 400.0f; // 子弹移动速度（像素/秒）
 };
 
 // 敌人
@@ -37,7 +37,23 @@ public:
     SDL_FPoint position = {0, 0}; // 敌人位置：浮点数坐标
     int width = 50; // 敌人宽度
     int height = 50; // 敌人高度
-    float speed = 100.0f; // 敌人移动速度（像素/秒）
+    float speed = 80.0f; // 敌人移动速度（像素/秒）
+
+    Uint32 cooldownTime = 1500; // 射击冷却时间（毫秒）
+    Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
+};
+
+// 敌人子弹
+class EnemyProjectile {
+public:
+    SDL_Texture* texture = nullptr; // 子弹纹理
+    SDL_FPoint position = {0, 0}; // 子弹位置：浮点数坐标
+    int width = 0; // 子弹宽度
+    int height = 0; // 子弹高度
+    float speed = 200.0f; // 子弹移动速度（像素/秒）
+
+    // 子弹朝向
+    SDL_FPoint direction = {0.0f, 1.0f}; // 默认向下
 };
 
 #endif // OBJ_H

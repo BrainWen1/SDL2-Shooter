@@ -26,7 +26,7 @@ public:
     void keyboardControls(float deltaTime);
 
     void PlayerShoot(); // 玩家射击
-    void EnemyShoot(); // 敌人射击
+    void EnemyShoot(Enemy* enemy); // 敌人射击
 
     void updatePlayerProjectiles(float deltaTime); // 更新玩家子弹位置
     void renderPlayerProjectiles(); // 渲染玩家子弹
@@ -34,6 +34,10 @@ public:
     void spawnEnemy(); // 生成敌人
     void updateEnemies(float deltaTime); // 更新敌人位置
     void renderEnemies(); // 渲染敌人
+
+    SDL_FPoint getDirection(Enemy* enemy); // 计算敌人子弹方向
+    void updateEnemyProjectiles(float deltaTime); // 更新敌人子弹位置
+    void renderEnemyProjectiles(); // 渲染敌人子弹
 
 private:
     // 主屏幕特有的成员变量
@@ -44,7 +48,10 @@ private:
     std::list<PlayerProjectile*> playerProjectiles; // 玩家子弹列表，使用指针管理避免拷贝问题
 
     Enemy enemy; // 敌人模板
-    std::list<Enemy*> enemies; // 敌人列表，使用指针管理避免拷贝问题
+    std::list<Enemy*> enemies; // 敌人列表
+
+    EnemyProjectile enemyprojectile; // 单个敌人子弹模板
+    std::list<EnemyProjectile*> enemyProjectiles; // 敌人子弹列表
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器
