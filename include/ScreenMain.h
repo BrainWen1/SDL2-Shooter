@@ -41,7 +41,10 @@ public:
 
     void enemyExplosion(Enemy* enemy); // 敌人爆炸效果
 
-    void updatePlayer(float deltaTime); // 更新玩家状态
+    void updatePlayer(); // 更新玩家状态
+
+    void updateExplosions(); // 更新爆炸效果状态
+    void renderExplosions(); // 渲染爆炸效果
 
 private:
     // 主屏幕特有的成员变量
@@ -57,6 +60,9 @@ private:
 
     EnemyProjectile enemyprojectile; // 单个敌人子弹模板
     std::list<EnemyProjectile*> enemyProjectiles; // 敌人子弹列表
+
+    Explosion explosion; // 爆炸效果模板
+    std::list<Explosion*> explosions; // 爆炸效果列表
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器

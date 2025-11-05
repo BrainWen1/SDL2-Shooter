@@ -47,6 +47,16 @@ void ScreenMain::init() { // 初始化主屏幕
     // 缩放敌人子弹尺寸
     enemyprojectile.width /= 4;
     enemyprojectile.height /= 4;
+
+    // 初始化爆炸效果纹理
+    explosion.texture = IMG_LoadTexture(game.getRenderer(), "../assets/effect/explosion.png");
+    SDL_QueryTexture(explosion.texture, nullptr, nullptr, &explosion.width, &explosion.height);
+    
+    // 计算爆炸效果总帧数
+    explosion.totalFrames = explosion.width / explosion.height;
+
+    // 保持一帧是正方形
+    explosion.width = explosion.height;
 }
 
 void ScreenMain::clean() { // 清理主屏幕
@@ -65,7 +75,6 @@ void ScreenMain::clean() { // 清理主屏幕
 
     // 清理玩家子弹列表
     for (auto &projectile : playerProjectiles) {
-        projectile->texture = nullptr;
         delete projectile;
     }
     playerProjectiles.clear();
@@ -78,7 +87,6 @@ void ScreenMain::clean() { // 清理主屏幕
 
     // 清理敌人列表
     for (auto &enemy : enemies) {
-        enemy->texture = nullptr;
         delete enemy;
     }
     enemies.clear();
@@ -91,10 +99,21 @@ void ScreenMain::clean() { // 清理主屏幕
 
     // 清理敌人子弹列表
     for (auto &projectile : enemyProjectiles) {
-        projectile->texture = nullptr;
         delete projectile;
     }
     enemyProjectiles.clear();
+
+    // 清理爆炸效果模板纹理
+    if (explosion.texture != nullptr) {
+        SDL_DestroyTexture(explosion.texture);
+        explosion.texture = nullptr;
+    }
+
+    // 清理爆炸效果列表
+    for (auto &explosion : explosions) {
+        delete explosion;
+    }
+    explosions.clear();
 }
 
 void ScreenMain::update(float deltaTime) { // 更新主屏幕
@@ -104,7 +123,8 @@ void ScreenMain::update(float deltaTime) { // 更新主屏幕
     spawnEnemy(); // 生成敌人
     updateEnemies(deltaTime); // 更新敌人状态
     updateEnemyProjectiles(deltaTime); // 更新敌人子弹状态
-    updatePlayer(deltaTime); // 更新玩家状态
+    updatePlayer(); // 更新玩家状态
+    updateExplosions(); // 更新爆炸效果状态
 }
 
 void ScreenMain::render() { // 渲染主屏幕
@@ -128,6 +148,9 @@ void ScreenMain::render() { // 渲染主屏幕
 
     // 渲染敌人子弹
     renderEnemyProjectiles();
+
+    // 渲染爆炸效果
+    renderExplosions();
 }
 
 void ScreenMain::handleEvents(SDL_Event* event) {
@@ -429,11 +452,20 @@ void ScreenMain::renderEnemyProjectiles() { // 渲染敌人子弹
 
 void ScreenMain::enemyExplosion(Enemy* enemy) { // 敌人爆炸效果
 
-    // 这里可以添加爆炸动画或音效的实现
-    // 目前仅作为占位符函数
+    // 创建一个新的爆炸效果
+    Explosion* newExplosion = new Explosion(explosion); // 使用模板初始化新爆炸效果
+
+    // 设置爆炸效果位置：敌人中心
+    newExplosion->position.x = enemy->position.x + (enemy->width - newExplosion->width) / 2.0f;
+    newExplosion->position.y = enemy->position.y + (enemy->height - newExplosion->height) / 2.0f;
+
+    // 将新爆炸效果添加到爆炸效果列表
+    explosions.push_back(newExplosion);
+
+    newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
 }
 
-void ScreenMain::updatePlayer(float deltaTime) { // 更新玩家状态
+void ScreenMain::updatePlayer() { // 更新玩家状态
 
     // 检查玩家是否死亡
     if (isdead) return;
@@ -442,6 +474,18 @@ void ScreenMain::updatePlayer(float deltaTime) { // 更新玩家状态
     if (player.health <= 0) {
         // 玩家死亡处理逻辑：停止玩家的更新和渲染，敌机停止发射子弹，停止碰撞检测，准备切换到游戏结束屏幕
         isdead = true;
+
+        // 玩家爆炸效果
+        auto newExplosion = new Explosion(explosion); // 使用模板初始化新爆炸效果
+
+        // 设置爆炸效果位置：玩家中心
+        newExplosion->position.x = player.position.x + (player.width - newExplosion->width) / 2.0f;
+        newExplosion->position.y = player.position.y + (player.height - newExplosion->height) / 2.0f;
+
+        // 将新爆炸效果添加到爆炸效果列表
+        explosions.push_back(newExplosion);
+
+        newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
     } else {
         // 检查玩家与敌机碰撞
         for (const auto &enemy : enemies) {
@@ -463,5 +507,47 @@ void ScreenMain::updatePlayer(float deltaTime) { // 更新玩家状态
                 enemy->health = 0; // 碰撞后敌人死亡
             }
         }
+    }
+}
+
+void ScreenMain::updateExplosions() { // 更新爆炸效果状态
+
+    auto currentTime = SDL_GetTicks(); // 获取当前时间
+
+    for (auto it = explosions.begin(); it != explosions.end(); ) {
+        Explosion* explosion = *it; // 获取当前爆炸效果指针
+
+        // 计算经过的时间
+        Uint32 elapsedTime = currentTime - explosion->startTime;
+
+        // 计算当前帧
+        explosion->currentFrame = (elapsedTime / (1000 / explosion->FPS));
+
+        if (explosion->currentFrame >= explosion->totalFrames) {
+            // 爆炸效果结束，删除该爆炸效果
+            delete explosion; // 释放内存
+            it = explosions.erase(it); // 从列表中移除爆炸效果
+        } else {
+            ++it; // 移动到下一个爆炸效果
+        }
+    }
+}
+
+void ScreenMain::renderExplosions() { // 渲染爆炸效果
+
+    for (const auto &explosion : explosions) {
+        SDL_Rect srcRect = {
+            explosion->currentFrame * explosion->width, // 爆炸纹理是水平排列的帧
+            0,
+            explosion->width,
+            explosion->height 
+        };
+        SDL_Rect destRect = {
+            static_cast<int>(explosion->position.x),
+            static_cast<int>(explosion->position.y),
+            explosion->width,
+            explosion->height
+        };
+        SDL_RenderCopy(game.getRenderer(), explosion->texture, &srcRect, &destRect);
     }
 }

@@ -72,4 +72,18 @@ public:
     int damage = 1;
 };
 
+// 爆炸效果
+class Explosion {
+public:
+    SDL_Texture* texture = nullptr; // 爆炸纹理
+    SDL_FPoint position = {0, 0}; // 爆炸位置：浮点数坐标
+    int width = 0; // 爆炸宽度
+    int height = 0; // 爆炸高度
+
+    int currentFrame = 0; // 当前动画帧
+    int totalFrames = 0; // 总动画帧数
+    Uint32 startTime = 0; // 动画开始时间
+    Uint32 FPS = 10; // 动画帧率
+};
+
 #endif // OBJ_H
