@@ -18,6 +18,7 @@ public:
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
 };
 
+// 玩家子弹
 class PlayerProjectile {
 public:
     SDL_Texture* texture = nullptr; // 子弹纹理
@@ -27,6 +28,16 @@ public:
     int height = 0; // 子弹高度
 
     float speed = 300.0f; // 子弹移动速度（像素/秒）
+};
+
+// 敌人
+class Enemy {
+public:
+    SDL_Texture* texture = nullptr; // 敌人纹理
+    SDL_FPoint position = {0, 0}; // 敌人位置：浮点数坐标
+    int width = 50; // 敌人宽度
+    int height = 50; // 敌人高度
+    float speed = 100.0f; // 敌人移动速度（像素/秒）
 };
 
 #endif // OBJ_H

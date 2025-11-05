@@ -30,6 +30,19 @@ public:
     int getScreenWidth() const { return screenWidth; }
     int getScreenHeight() const { return screenHeight; }
 
+    // // 设置游戏难度
+    // int getEnemySpawnRate() const { return enemySpawnRate; }
+    // void setEnemySpawnRate(float rate) { enemySpawnRate = rate; } // 设置敌人生成速率
+
+    // int getEnemySpeed() const { return enemySpeed; }
+    // void setEnemySpeed(float speed) { enemySpeed = speed; } // 设置敌人移动速度
+
+    // int getPlayerShootCooldown() const { return playerShootCooldown; }
+    // void setPlayerShootCooldown(float cooldown) { playerShootCooldown = cooldown; } // 设置玩家射击冷却时间
+
+    // int getPlayerSpeed() const { return playerSpeed; }
+    // void setPlayerSpeed(float speed) { playerSpeed = speed; } // 设置玩家移动速度
+
 private:
     bool isRunning = true; // 游戏是否在运行
     Screen* currentScreen = nullptr; // 当前屏幕
@@ -48,6 +61,14 @@ private:
     const int FPS = 120;
     Uint32 frameTime;
     float deltaTime; // 每帧时间间隔
+
+    // // 难度：计划中的游戏参数
+    // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）
+    // float enemySpeed = 100.0f; // 敌人移动速度（像素/秒）
+    // float enemyShootSpeed = 1.0f; // 敌人攻击速度（秒）
+
+    // float playerShootCooldown = 0.5f; // 玩家攻击速度（秒）
+    // float playerSpeed = 200.0f; // 玩家移动速度（像素/秒）
 };
 
 #endif // GAME_H
