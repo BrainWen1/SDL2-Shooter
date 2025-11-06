@@ -22,6 +22,9 @@ void ScreenMain::init() { // 初始化主屏幕
     // 读取ui Health Bar纹理
     healthBar = IMG_LoadTexture(game.getRenderer(), "../assets/image/Health UI Black.png");
 
+    // 载入字体
+    scoreFont = TTF_OpenFont("../assets/font/VonwaonBitmap-12px.ttf", 24); // 字体大小24
+
     // 读取音效
     soundCache["player_shoot"] = Mix_LoadWAV("../assets/sound/player_shoot.wav"); // 玩家射击音效
     soundCache["enemy_shoot"] = Mix_LoadWAV("../assets/sound/enemy_shoot.wav"); // 敌人射击音效
@@ -174,6 +177,12 @@ void ScreenMain::clean() { // 清理主屏幕
     }
     soundCache.clear();
 
+    // 关闭字体
+    if (scoreFont != nullptr) {
+        TTF_CloseFont(scoreFont);
+        scoreFont = nullptr;
+    }
+
 }
 
 void ScreenMain::update(float deltaTime) { // 更新主屏幕
@@ -196,7 +205,7 @@ void ScreenMain::render() { // 渲染主屏幕
     renderEnemyProjectiles(); // 渲染敌人子弹
     renderItems(); // 渲染道具：放在爆炸上方，以免被覆盖
     renderExplosions(); // 渲染爆炸效果
-    renderHealthBar(); // 渲染生命值显示
+    renderUI(); // 渲染UI
 }
 
 void ScreenMain::renderPlayer() { // 渲染玩家
@@ -550,6 +559,9 @@ void ScreenMain::enemyExplosion(Enemy* enemy) { // 敌人爆炸效果
         Mix_PlayChannel(-1, soundCache["enemy_explosion"], 0);
     }
 
+    // 玩家得分
+    score += enemy->scoreValue;
+
     newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
 
     // 有一定概率掉落道具
@@ -756,7 +768,8 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
     if (item->type == ItemType::HEALTH_PACK) { // 血包
 
         player.health += 1; // 增加生命值
-        SDL_Log("add health: %d", player.health);
+        
+        score += item->scoreValue; // 玩家得分
 
         // 播放拾取道具音效
         if (soundCache["item_pickup"] != nullptr) {
@@ -769,15 +782,16 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
     }
 }
 
-void ScreenMain::renderHealthBar() {
+void ScreenMain::renderUI() {
 
+    // 渲染血量
     int x = 10; // 生命值显示位置X
     int y = 10; // 生命值显示位置Y
     int size = 32; // 生命值图标大小
     int offset = 32; // 生命值图标间隔
 
     // 渲染底色
-    SDL_SetTextureColorMod(healthBar, 100, 100, 100);
+    SDL_SetTextureColorMod(healthBar, 50, 50, 50);
     for (int i = 0; i < player.MaxHealth; ++i) {
         SDL_Rect rect = {
             x + i * offset,
@@ -798,5 +812,19 @@ void ScreenMain::renderHealthBar() {
             size
         };
         SDL_RenderCopy(game.getRenderer(), healthBar, nullptr, &rect);
+    }
+
+    // 渲染分数
+    std::string scoreText = "Score:" + std::to_string(score);
+    SDL_Color white = {255, 255, 255, 255};
+    SDL_Surface *surface = TTF_RenderUTF8_Solid(scoreFont, scoreText.c_str(), white);
+    if (surface != nullptr) {
+        SDL_Texture *texture = SDL_CreateTextureFromSurface(game.getRenderer(), surface);
+        if (texture != nullptr) {
+            SDL_Rect destRect = { game.getScreenWidth() - 10 - surface->w, 10, surface->w, surface->h }; // 分数显示位置和大小
+            SDL_RenderCopy(game.getRenderer(), texture, nullptr, &destRect);
+            SDL_DestroyTexture(texture);
+        }
+        SDL_FreeSurface(surface);
     }
 }

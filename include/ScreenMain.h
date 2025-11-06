@@ -56,7 +56,7 @@ public:
     void renderItems(); // 渲染道具
     void playerGetItem(Item* item); // 玩家获取道具
 
-    void renderHealthBar(); // 渲染生命值显示
+    void renderUI(); // 渲染UI
 
 private:
     // 主屏幕特有的成员变量
@@ -64,7 +64,7 @@ private:
     bool isdead = false; // 玩家是否死亡
     Game &game;
 
-    Mix_Music* bgm = nullptr; // 背景音乐
+    Mix_Music *bgm = nullptr; // 背景音乐
     std::map<std::string, Mix_Chunk*> soundCache; // 音效缓存
 
     PlayerProjectile playerprojectile; // 单个玩家子弹模板
@@ -85,6 +85,9 @@ private:
     std::list<Item*> items; // 道具列表
 
     SDL_Texture *healthBar; // 玩家生命值显示
+
+    TTF_Font *scoreFont; // 分数字体
+    int score = 0; // 玩家分数
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器

@@ -70,6 +70,12 @@ void Game::init() { // 初始化游戏
     nearStars.width /= (7 / 4); nearStars.height /= (7 / 4); // 缩放近星背景尺寸
     farStars.width /= (7 / 4); farStars.height /= (7 / 4); // 缩放远星背景尺寸
 
+    // 初始化SDL_ttf
+    if (TTF_Init() == -1) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_Init Error: %s", TTF_GetError());
+        isRunning = false;
+    }
+
     // 初始化第一个屏幕（在图像/音频子系统初始化之后）
     // 这里可以根据需要切换不同的屏幕
     currentScreen = new ScreenMain();
@@ -126,6 +132,9 @@ void Game::clean() { // 清理资源
     // 退出SDL_mixer
     Mix_CloseAudio();
     Mix_Quit();
+
+    // 退出SDL_ttf
+    TTF_Quit();
 
     // 销毁渲染器和窗口
     if (renderer != nullptr) {

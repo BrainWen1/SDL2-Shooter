@@ -54,6 +54,9 @@ public:
 
     // 敌人碰撞伤害
     int collisionDamage = 1;
+
+    // 敌人分值
+    int scoreValue = 10;
 };
 
 // 敌人子弹
@@ -106,6 +109,8 @@ public:
 
     int speed = 200; // 道具移动速度（像素/秒）
     int bounceCount = 3; // 道具弹跳次数
+
+    int scoreValue = 5; // 道具分值
 };
 
 // 背景图
