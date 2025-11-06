@@ -19,6 +19,9 @@ void ScreenMain::init() { // 初始化主屏幕
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_LoadMUS Error: %s", Mix_GetError());
     }
 
+    // 读取ui Health Bar纹理
+    healthBar = IMG_LoadTexture(game.getRenderer(), "../assets/image/Health UI Black.png");
+
     // 读取音效
     soundCache["player_shoot"] = Mix_LoadWAV("../assets/sound/player_shoot.wav"); // 玩家射击音效
     soundCache["enemy_shoot"] = Mix_LoadWAV("../assets/sound/enemy_shoot.wav"); // 敌人射击音效
@@ -44,7 +47,7 @@ void ScreenMain::init() { // 初始化主屏幕
     player.position.y = game.getScreenHeight() - player.height;
 
     // 初始化玩家子弹纹理，避免频繁读取硬盘
-    playerprojectile.texture = IMG_LoadTexture(game.getRenderer(), "../assets/image/laser-1.png");
+    playerprojectile.texture = IMG_LoadTexture(game.getRenderer(), "../assets/image/laser-2.png");
     SDL_QueryTexture(playerprojectile.texture, nullptr, nullptr, &playerprojectile.width, &playerprojectile.height);
     // 缩放子弹尺寸
     playerprojectile.width /= 4;
@@ -143,6 +146,12 @@ void ScreenMain::clean() { // 清理主屏幕
         item_HEALTH_PACK.texture = nullptr;
     }
 
+    // 清理生命值显示纹理
+    if (healthBar != nullptr) {
+        SDL_DestroyTexture(healthBar);
+        healthBar = nullptr;
+    }
+
     // 清理道具列表
     for (auto &item : items) {
         delete item;
@@ -187,6 +196,7 @@ void ScreenMain::render() { // 渲染主屏幕
     renderEnemyProjectiles(); // 渲染敌人子弹
     renderItems(); // 渲染道具：放在爆炸上方，以免被覆盖
     renderExplosions(); // 渲染爆炸效果
+    renderHealthBar(); // 渲染生命值显示
 }
 
 void ScreenMain::renderPlayer() { // 渲染玩家
@@ -756,5 +766,37 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
         if (player.health > player.MaxHealth) { // 不超过最大生命值
            player.health = player.MaxHealth;
         }
+    }
+}
+
+void ScreenMain::renderHealthBar() {
+
+    int x = 10; // 生命值显示位置X
+    int y = 10; // 生命值显示位置Y
+    int size = 32; // 生命值图标大小
+    int offset = 32; // 生命值图标间隔
+
+    // 渲染底色
+    SDL_SetTextureColorMod(healthBar, 100, 100, 100);
+    for (int i = 0; i < player.MaxHealth; ++i) {
+        SDL_Rect rect = {
+            x + i * offset,
+            y,
+            size,
+            size
+        };
+        SDL_RenderCopy(game.getRenderer(), healthBar, nullptr, &rect);
+    }
+
+    // 渲染当前生命值
+    SDL_SetTextureColorMod(healthBar, 255, 255, 255);
+    for (int i = 0; i < player.health; ++i) {
+        SDL_Rect rect = {
+            x + i * offset,
+            y,
+            size,
+            size
+        };
+        SDL_RenderCopy(game.getRenderer(), healthBar, nullptr, &rect);
     }
 }

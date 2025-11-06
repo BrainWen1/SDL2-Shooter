@@ -56,6 +56,8 @@ public:
     void renderItems(); // 渲染道具
     void playerGetItem(Item* item); // 玩家获取道具
 
+    void renderHealthBar(); // 渲染生命值显示
+
 private:
     // 主屏幕特有的成员变量
     Player player; // 玩家对象
@@ -81,6 +83,8 @@ private:
     Item item_SHIELD; // 护盾道具模板
     Item item_POWER_UP; // 强化道具模板
     std::list<Item*> items; // 道具列表
+
+    SDL_Texture *healthBar; // 玩家生命值显示
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器

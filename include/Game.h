@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include "Screen.h"
+#include "Obj.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
@@ -31,6 +32,9 @@ public:
     // 获取窗口尺寸
     int getScreenWidth() const { return screenWidth; }
     int getScreenHeight() const { return screenHeight; }
+
+    void updateBackgrounds(float deltaTime); // 更新背景图
+    void renderBackgrounds(); // 渲染背景图
 
     // // 设置游戏难度
     // int getEnemySpawnRate() const { return enemySpawnRate; }
@@ -63,6 +67,10 @@ private:
     const int FPS = 120;
     Uint32 frameTime;
     float deltaTime; // 每帧时间间隔
+
+    // 背景图
+    Background nearStars ; // 近星背景
+    Background farStars; // 远星背景
 
     // // 难度：计划中的游戏参数
     // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）

@@ -108,4 +108,16 @@ public:
     int bounceCount = 3; // 道具弹跳次数
 };
 
+// 背景图
+class Background {
+public:
+    SDL_Texture* texture = nullptr; // 背景纹理
+    SDL_FPoint position = {0, 0}; // 背景位置：浮点数坐标
+    int width = 0; // 背景宽度
+    int height = 0; // 背景高度
+    int speed = 30; // 背景移动速度（像素/秒）
+
+    float offsetY = 0.0f; // 背景垂直偏移
+};
+
 #endif // OBJ_H
