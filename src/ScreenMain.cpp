@@ -11,6 +11,22 @@ ScreenMain::~ScreenMain() {
 
 void ScreenMain::init() { // 初始化主屏幕
 
+    // 播放背景音乐
+    bgm = Mix_LoadMUS("../assets/music/battle.ogg");
+    if (bgm != nullptr) {
+        Mix_PlayMusic(bgm, -1); // 循环播放背景音乐
+    } else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_LoadMUS Error: %s", Mix_GetError());
+    }
+
+    // 读取音效
+    soundCache["player_shoot"] = Mix_LoadWAV("../assets/sound/player_shoot.wav"); // 玩家射击音效
+    soundCache["enemy_shoot"] = Mix_LoadWAV("../assets/sound/enemy_shoot.wav"); // 敌人射击音效
+    soundCache["player_explosion"] = Mix_LoadWAV("../assets/sound/player_explosion.wav"); // 玩家爆炸音效
+    soundCache["enemy_explosion"] = Mix_LoadWAV("../assets/sound/enemy_explosion.wav"); // 敌人爆炸音效
+    soundCache["hit"] = Mix_LoadWAV("../assets/sound/hit.wav"); // 受击音效
+    soundCache["item_pickup"] = Mix_LoadWAV("../assets/sound/item_pick.wav"); // 道具拾取音效
+
     // 初始化随机数引擎
     std::random_device rd;
     gen = std::mt19937(rd());
@@ -132,6 +148,23 @@ void ScreenMain::clean() { // 清理主屏幕
         delete item;
     }
     items.clear();
+
+    // 停止并释放背景音乐
+    if (bgm != nullptr) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(bgm);
+        bgm = nullptr;
+    }
+
+    // 清理音效缓存
+    for (auto &pair : soundCache) {
+        if (pair.second != nullptr) {
+            Mix_FreeChunk(pair.second);
+            pair.second = nullptr;
+        }
+    }
+    soundCache.clear();
+
 }
 
 void ScreenMain::update(float deltaTime) { // 更新主屏幕
@@ -236,6 +269,11 @@ void ScreenMain::PlayerShoot() { // 玩家射击
 
     // 将新子弹添加到子弹列表
     playerProjectiles.push_back(projectile);
+
+    // 播放射击音效
+    if (soundCache["player_shoot"] != nullptr) {
+        Mix_PlayChannel(0, soundCache["player_shoot"], 0); // 第一个参数为频道，0表示第一个可用频道
+    }
 }
 
 void ScreenMain::updatePlayerProjectiles(float deltaTime) { // 更新玩家子弹位置
@@ -274,6 +312,12 @@ void ScreenMain::updatePlayerProjectiles(float deltaTime) { // 更新玩家子�
                 if (SDL_HasIntersection(&enemyRect, &projectileRect)) {
 
                     enemy->health -= projectile->damage; // 减少敌人生命值
+
+                    // 播放受击音效
+                    if (soundCache["hit"] != nullptr) {
+                        Mix_PlayChannel(-1, soundCache["hit"], 0);
+                    }
+
                     delete projectile; // 释放内存
                     it = playerProjectiles.erase(it); // 从列表中移除子弹
 
@@ -304,7 +348,7 @@ void ScreenMain::renderPlayerProjectiles() { // 渲染玩家子弹
 
 void ScreenMain::spawnEnemy() { // 生成敌人
 
-    if (dis(gen) <= 0.62f / 60.0f) { // 敌人生成概率：每秒约生成0.65个敌人
+    if (dis(gen) <= 0.6f / 60.0f) { // 敌人生成概率：每秒约生成0.6个敌人
         Enemy* newEnemy = new Enemy(enemy); // 使用模板初始化新敌人
 
         // 设置敌人初始位置：屏幕顶部随机位置
@@ -382,6 +426,11 @@ void ScreenMain::EnemyShoot(Enemy* enemy) { // 敌人射击
 
     // 将新子弹添加到敌人子弹列表
     enemyProjectiles.push_back(projectile);
+
+    // 播放敌人射击音效
+    if (soundCache["enemy_shoot"] != nullptr) {
+        Mix_PlayChannel(-1, soundCache["enemy_shoot"], 0); // 第一个参数为频道，-1表示自动选择第一个可用频道
+    }
 }
 
 SDL_FPoint ScreenMain::getDirection(Enemy* enemy) { // 计算敌人子弹方向
@@ -441,6 +490,13 @@ void ScreenMain::updateEnemyProjectiles(float deltaTime) { // 更新敌人子弹
             if (isdead != true && SDL_HasIntersection(&rect, &playerRect)) {
                 
                 player.health -= projectile->damage; // 减少玩家生命值
+                SDL_Log("sub health: %d", player.health);
+
+                // 播放受击音效
+                if (soundCache["hit"] != nullptr) {
+                    Mix_PlayChannel(-1, soundCache["hit"], 0);
+                }
+
                 delete projectile; // 释放内存
                 it = enemyProjectiles.erase(it); // 从列表中移除子弹，并移动到下一个子弹
             } else {
@@ -479,6 +535,11 @@ void ScreenMain::enemyExplosion(Enemy* enemy) { // 敌人爆炸效果
     // 将新爆炸效果添加到爆炸效果列表
     explosions.push_back(newExplosion);
 
+    // 播放敌人爆炸音效
+    if (soundCache["enemy_explosion"] != nullptr) {
+        Mix_PlayChannel(-1, soundCache["enemy_explosion"], 0);
+    }
+
     newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
 
     // 有一定概率掉落道具
@@ -505,6 +566,11 @@ void ScreenMain::updatePlayer() { // 更新玩家状态
         // 将新爆炸效果添加到爆炸效果列表
         explosions.push_back(newExplosion);
 
+        // 播放玩家爆炸音效
+        if (soundCache["player_explosion"] != nullptr) {
+            Mix_PlayChannel(-1, soundCache["player_explosion"], 0);
+        }
+
         newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
     } else {
         // 检查玩家与敌机碰撞
@@ -524,6 +590,7 @@ void ScreenMain::updatePlayer() { // 更新玩家状态
             if (SDL_HasIntersection(&enemyRect, &playerRect)) {
                 
                 player.health -= enemy->collisionDamage; // 碰撞则减少玩家生命值
+                SDL_Log("sub health: %d", player.health);
                 enemy->health = 0; // 碰撞后敌人死亡
             }
         }
@@ -575,7 +642,7 @@ void ScreenMain::renderExplosions() { // 渲染爆炸效果
 void ScreenMain::dropItem(Enemy *enemy) { // 掉落道具
 
 
-    if (dis(gen) <= 0.5f) { // 50% 概率掉落血包
+    if (dis(gen) <= 0.15f) { // 15% 概率掉落血包
 
         Item* newItem = new Item(item_HEALTH_PACK); // 使用血包模板初始化新道具
 
@@ -679,6 +746,12 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
     if (item->type == ItemType::HEALTH_PACK) { // 血包
 
         player.health += 1; // 增加生命值
+        SDL_Log("add health: %d", player.health);
+
+        // 播放拾取道具音效
+        if (soundCache["item_pickup"] != nullptr) {
+            Mix_PlayChannel(-1, soundCache["item_pickup"], 0);
+        }
 
         if (player.health > player.MaxHealth) { // 不超过最大生命值
            player.health = player.MaxHealth;

@@ -39,16 +39,32 @@ void Game::init() { // 初始化游戏
         return;
     }
 
-    // 初始化第一个屏幕
-    // 这里可以根据需要切换不同的屏幕
-    currentScreen = new ScreenMain();
-    currentScreen->init(); // 初始化主屏幕
-
-    // 初始化SDL_image
+    // 初始化SDL_image（在加载任何纹理之前）
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_Init Error: %s", IMG_GetError());
         isRunning = false;
     }
+
+    // 初始化SDL_mixer（在加载任何音乐之前）
+    if (Mix_Init(MIX_INIT_OGG | MIX_INIT_MP3) != (MIX_INIT_OGG | MIX_INIT_MP3)) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_Init Error: %s", Mix_GetError());
+        isRunning = false;
+    }
+
+    // 打开音频设备
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_OpenAudio Error: %s", Mix_GetError());
+        isRunning = false;
+    }
+    Mix_VolumeMusic(MIX_MAX_VOLUME / 4); // 设置背景音乐音量为最大音量的1/4
+
+    Mix_AllocateChannels(32); // 分配32个混音通道，用于音效播放
+    Mix_Volume(-1, MIX_MAX_VOLUME / 6); // 设置所有音效通道的音量为最大音量的1/2
+
+    // 初始化第一个屏幕（在图像/音频子系统初始化之后）
+    // 这里可以根据需要切换不同的屏幕
+    currentScreen = new ScreenMain();
+    currentScreen->init(); // 初始化主屏幕
 }
 
 void Game::run() {
@@ -87,6 +103,10 @@ void Game::clean() { // 清理资源
 
     // 退出SDL_image
     IMG_Quit();
+
+    // 退出SDL_mixer
+    Mix_CloseAudio();
+    Mix_Quit();
 
     // 销毁渲染器和窗口
     if (renderer != nullptr) {

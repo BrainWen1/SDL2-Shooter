@@ -5,8 +5,12 @@
 #include "Obj.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <list>
 #include <random>
+#include <map>
+#include <string>
 
 // 前向声明，避免头文件循环依赖
 class Game;
@@ -57,6 +61,9 @@ private:
     Player player; // 玩家对象
     bool isdead = false; // 玩家是否死亡
     Game &game;
+
+    Mix_Music* bgm = nullptr; // 背景音乐
+    std::map<std::string, Mix_Chunk*> soundCache; // 音效缓存
 
     PlayerProjectile playerprojectile; // 单个玩家子弹模板
     std::list<PlayerProjectile*> playerProjectiles; // 玩家子弹列表，使用指针管理避免拷贝问题

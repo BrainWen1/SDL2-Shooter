@@ -14,7 +14,7 @@ public:
 
     float speed = 250.0f; // 玩家移动速度（像素/秒）
 
-    Uint32 cooldownTime = 300; // 射击冷却时间（毫秒）
+    Uint32 cooldownTime = 200; // 射击冷却时间（毫秒）
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
 
     // 玩家生命值
@@ -46,7 +46,7 @@ public:
     int height = 50; // 敌人高度
     float speed = 80.0f; // 敌人移动速度（像素/秒）
 
-    Uint32 cooldownTime = 1500; // 射击冷却时间（毫秒）
+    Uint32 cooldownTime = 1800; // 射击冷却时间（毫秒）
     Uint32 lastShotTime = 0; // 上次射击时间（毫秒）
 
     // 敌人生命值
