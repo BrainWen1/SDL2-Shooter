@@ -21,12 +21,13 @@ public:
     ScreenMain();
     ~ScreenMain();
 
-    void init() override;
-    void clean() override;
-    void update(float deltaTime) override;
-    void render() override;
-    void handleEvents(SDL_Event* event) override;
+    virtual void init() override;
+    virtual void clean() override;
+    virtual void update(float deltaTime) override;
+    virtual void render() override;
+    virtual void handleEvents(SDL_Event* event) override;
 
+private:
     void keyboardControls(float deltaTime);
 
     void PlayerShoot(); // 玩家射击
@@ -62,7 +63,6 @@ private:
     // 主屏幕特有的成员变量
     Player player; // 玩家对象
     bool isdead = false; // 玩家是否死亡
-    Game &game;
 
     Mix_Music *bgm = nullptr; // 背景音乐
     std::map<std::string, Mix_Chunk*> soundCache; // 音效缓存

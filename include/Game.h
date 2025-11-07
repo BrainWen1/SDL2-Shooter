@@ -1,12 +1,14 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Screen.h"
 #include "Obj.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
+#include <string>
+
+class Screen; // 前向声明，避免头文件循环依赖
 
 class Game {
 public:
@@ -33,8 +35,8 @@ public:
     int getScreenWidth() const { return screenWidth; }
     int getScreenHeight() const { return screenHeight; }
 
-    void updateBackgrounds(float deltaTime); // 更新背景图
-    void renderBackgrounds(); // 渲染背景图
+    // 渲染文字
+    void renderTextCentered(const std::string &text, float y, bool isTitle);
 
     // // 设置游戏难度
     // int getEnemySpawnRate() const { return enemySpawnRate; }
@@ -71,6 +73,12 @@ private:
     // 背景图
     Background nearStars ; // 近星背景
     Background farStars; // 远星背景
+    void updateBackgrounds(float deltaTime); // 更新背景图
+    void renderBackgrounds(); // 渲染背景图
+
+    // 标题和结束字体
+    TTF_Font *titleFont;
+    TTF_Font *textFont;
 
     // // 难度：计划中的游戏参数
     // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）

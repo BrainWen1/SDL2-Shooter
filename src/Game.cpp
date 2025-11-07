@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "ScreenMain.h"
+#include "Title.h"
 
 Game::Game() : isRunning(true) { // 构造函数
 }
@@ -64,6 +65,10 @@ void Game::init() { // 初始化游戏
     // 初始化背景图
     nearStars.texture = IMG_LoadTexture(renderer, "../assets/image/Stars-A.png");
     farStars.texture = IMG_LoadTexture(renderer, "../assets/image/Stars-B.png");
+    if (nearStars.texture == nullptr || farStars.texture == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_LoadTexture Error: %s", IMG_GetError());
+        isRunning = false;
+    }
     SDL_QueryTexture(nearStars.texture, nullptr, nullptr, &nearStars.width, &nearStars.height);
     SDL_QueryTexture(farStars.texture, nullptr, nullptr, &farStars.width, &farStars.height);
     farStars.speed = 20; // 远星背景速度较慢
@@ -76,9 +81,17 @@ void Game::init() { // 初始化游戏
         isRunning = false;
     }
 
+    // 载入标题和结束字体
+    titleFont = TTF_OpenFont("../assets/font/VonwaonBitmap-16px.ttf", 64); // 字体大小64
+    textFont = TTF_OpenFont("../assets/font/VonwaonBitmap-16px.ttf", 32); // 字体大小32
+    if (titleFont == nullptr || textFont == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont Error: %s", TTF_GetError());
+        isRunning = false;
+    }
+
     // 初始化第一个屏幕（在图像/音频子系统初始化之后）
     // 这里可以根据需要切换不同的屏幕
-    currentScreen = new ScreenMain();
+    currentScreen = new Title(); // 标题屏幕
     currentScreen->init(); // 初始化主屏幕
 }
 
@@ -117,6 +130,16 @@ void Game::clean() { // 清理资源
     if (farStars.texture != nullptr) {
         SDL_DestroyTexture(farStars.texture);
         farStars.texture = nullptr;
+    }
+
+    // 释放标题和结束字体
+    if (titleFont != nullptr) {
+        TTF_CloseFont(titleFont);
+        titleFont = nullptr;
+    }
+    if (textFont != nullptr) {
+        TTF_CloseFont(textFont);
+        textFont = nullptr;
     }
 
     // 清理当前屏幕
@@ -230,4 +253,41 @@ void Game::renderBackgrounds() { // 渲染背景图
             SDL_RenderCopy(renderer, nearStars.texture, nullptr, &destRect);
         }
     }
+}
+
+void Game::renderTextCentered(const std::string & text, float y, bool isTitle) {
+
+    SDL_Color color = {255, 255, 255, 255}; // 白色文字
+    SDL_Surface* textSurface = TTF_RenderUTF8_Solid( // 选择字体
+        isTitle ? titleFont : textFont,
+        text.c_str(),
+        color
+    );
+    if (textSurface == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_RenderText_Solid Error: %s", TTF_GetError());
+        return;
+    }
+
+    // 创建纹理
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    // 获取文本的宽高
+    int textWidth = textSurface->w;
+    int textHeight = textSurface->h;
+    int posY = static_cast<int> ((getScreenHeight() - textHeight) * y); // 计算y位置
+
+    // 计算文本位置
+    SDL_Rect destRect = {
+        (screenWidth - textWidth) / 2,
+        posY,
+        textWidth,
+        textHeight
+    };
+
+    // 渲染文本
+    SDL_RenderCopy(renderer, textTexture, nullptr, &destRect);
+
+    // 清理资源
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
 }

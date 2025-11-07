@@ -35,6 +35,8 @@ set(TARGET ${PROJECT_NAME}-${CMAKE_SYSTEM_NAME})
 set(SRC_FILES   ./test/main.cpp
                 ./src/Game.cpp
                 ./src/ScreenMain.cpp
+                ./src/Title.cpp
+                ./src/Screen.cpp
                 )
 
 add_executable(${TARGET} ${SRC_FILES})

@@ -1,7 +1,8 @@
 #include "ScreenMain.h"
 #include "Game.h"
+#include "Title.h"
 
-ScreenMain::ScreenMain() : game(Game::getInstance()) {
+ScreenMain::ScreenMain() {
     // 构造函数
 }
 
@@ -20,7 +21,7 @@ void ScreenMain::init() { // 初始化主屏幕
     }
 
     // 读取ui Health Bar纹理
-    healthBar = IMG_LoadTexture(game.getRenderer(), "../assets/image/Health UI Black.png");
+    healthBar = IMG_LoadTexture(Screen::game.getRenderer(), "../assets/image/Health UI Black.png");
 
     // 载入字体
     scoreFont = TTF_OpenFont("../assets/font/VonwaonBitmap-12px.ttf", 24); // 字体大小24
@@ -222,8 +223,13 @@ void ScreenMain::renderPlayer() { // 渲染玩家
     }
 }
 
-void ScreenMain::handleEvents(SDL_Event*) {
-    // 处理主屏幕的事件
+void ScreenMain::handleEvents(SDL_Event* event) { // 处理主屏幕的事件
+
+    // 切换到标题屏幕
+    if (event->type == SDL_KEYDOWN && event->key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+        auto newScreen = new Title();
+        game.changeScreen(newScreen);
+    }
 }
 
 void ScreenMain::keyboardControls(float deltaTime) {
