@@ -255,7 +255,7 @@ void Game::renderBackgrounds() { // 渲染背景图
     }
 }
 
-void Game::renderTextCentered(const std::string & text, float y, bool isTitle) {
+SDL_Point Game::renderTextCentered(const std::string & text, float y, bool isTitle) {
 
     SDL_Color color = {255, 255, 255, 255}; // 白色文字
     SDL_Surface* textSurface = TTF_RenderUTF8_Solid( // 选择字体
@@ -265,7 +265,7 @@ void Game::renderTextCentered(const std::string & text, float y, bool isTitle) {
     );
     if (textSurface == nullptr) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_RenderText_Solid Error: %s", TTF_GetError());
-        return;
+        return SDL_Point{0, 0};
     }
 
     // 创建纹理
@@ -280,6 +280,44 @@ void Game::renderTextCentered(const std::string & text, float y, bool isTitle) {
     SDL_Rect destRect = {
         (screenWidth - textWidth) / 2,
         posY,
+        textWidth,
+        textHeight
+    };
+
+    // 渲染文本
+    SDL_RenderCopy(renderer, textTexture, nullptr, &destRect);
+
+    // 清理资源
+    SDL_DestroyTexture(textTexture);
+    SDL_FreeSurface(textSurface);
+
+    return SDL_Point{ destRect.x + destRect.w, destRect.y }; // 返回文本右上角坐标
+}
+
+void Game::renderTextPoint(const std::string & text, int x, int y) {
+
+    SDL_Color color = {255, 255, 255, 255}; // 白色文字
+    SDL_Surface* textSurface = TTF_RenderUTF8_Solid( // 选择字体
+        textFont,
+        text.c_str(),
+        color
+    );
+    if (textSurface == nullptr) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_RenderText_Solid Error: %s", TTF_GetError());
+        return;
+    }
+
+    // 创建纹理
+    SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+    // 获取文本的宽高
+    int textWidth = textSurface->w;
+    int textHeight = textSurface->h;
+
+    // 计算文本位置
+    SDL_Rect destRect = {
+        x,
+        y,
         textWidth,
         textHeight
     };

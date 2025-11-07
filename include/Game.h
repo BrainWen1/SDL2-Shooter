@@ -36,7 +36,11 @@ public:
     int getScreenHeight() const { return screenHeight; }
 
     // 渲染文字
-    void renderTextCentered(const std::string &text, float y, bool isTitle);
+    SDL_Point renderTextCentered(const std::string &text, float y, bool isTitle);
+    void renderTextPoint(const std::string &text, int x, int y);
+
+    int getFinalScore() const { return finalScore; } // 获取最终得分
+    void setFinalScore(const int &score) { finalScore = score; } // 设置最终得分
 
     // // 设置游戏难度
     // int getEnemySpawnRate() const { return enemySpawnRate; }
@@ -79,6 +83,8 @@ private:
     // 标题和结束字体
     TTF_Font *titleFont;
     TTF_Font *textFont;
+
+    int finalScore = 0; // 最终得分
 
     // // 难度：计划中的游戏参数
     // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）

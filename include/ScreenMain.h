@@ -59,6 +59,8 @@ private:
 
     void renderUI(); // 渲染UI
 
+    void changeToEndingScreen(float deltaTime, float duration); // 切换到结束屏幕
+
 private:
     // 主屏幕特有的成员变量
     Player player; // 玩家对象
@@ -91,6 +93,8 @@ private:
 
     std::mt19937 gen; // 随机数生成器
     std::uniform_real_distribution<float> dis; // 随机数分布器
+
+    float timerEnding = 0.0f; // 游戏结束计时器
 };
 
 #endif // SCREEN_MAIN_H

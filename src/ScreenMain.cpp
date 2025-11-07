@@ -1,6 +1,7 @@
 #include "ScreenMain.h"
 #include "Game.h"
 #include "Title.h"
+#include "Ending.h"
 
 ScreenMain::ScreenMain() {
     // 构造函数
@@ -11,6 +12,9 @@ ScreenMain::~ScreenMain() {
 }
 
 void ScreenMain::init() { // 初始化主屏幕
+
+    // 将最终得分重置为0
+    game.setFinalScore(0);
 
     // 播放背景音乐
     bgm = Mix_LoadMUS("../assets/music/battle.ogg");
@@ -196,6 +200,10 @@ void ScreenMain::update(float deltaTime) { // 更新主屏幕
     updatePlayer(); // 更新玩家状态
     updateExplosions(); // 更新爆炸效果状态
     updateItems(deltaTime); // 更新道具状态
+
+    if (isdead) { // 玩家死亡，切换到结束屏幕
+        changeToEndingScreen(deltaTime, 2.0f);
+    }
 }
 
 void ScreenMain::render() { // 渲染主屏幕
@@ -599,6 +607,9 @@ void ScreenMain::updatePlayer() { // 更新玩家状态
             Mix_PlayChannel(-1, soundCache["player_explosion"], 0);
         }
 
+        // 玩家得分
+        game.setFinalScore(score);
+
         newExplosion->startTime = SDL_GetTicks(); // 记录爆炸效果开始时间
     } else {
         // 检查玩家与敌机碰撞
@@ -785,6 +796,7 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
         if (player.health > player.MaxHealth) { // 不超过最大生命值
            player.health = player.MaxHealth;
         }
+        SDL_Log("add health: %d", player.health);
     }
 }
 
@@ -832,5 +844,16 @@ void ScreenMain::renderUI() {
             SDL_DestroyTexture(texture);
         }
         SDL_FreeSurface(surface);
+    }
+}
+
+void ScreenMain::changeToEndingScreen(float deltaTime, float duration) { // 切换到结束屏幕
+
+    timerEnding += deltaTime;
+
+    if (timerEnding >= duration) {
+        // 切换到结束屏幕
+        auto newScreen = new Ending();
+        game.changeScreen(newScreen);
     }
 }

@@ -37,6 +37,7 @@ set(SRC_FILES   ./test/main.cpp
                 ./src/ScreenMain.cpp
                 ./src/Title.cpp
                 ./src/Screen.cpp
+                ./src/Ending.cpp
                 )
 
 add_executable(${TARGET} ${SRC_FILES})
