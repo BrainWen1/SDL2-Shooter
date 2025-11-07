@@ -2,10 +2,11 @@
 #include "ScreenMain.h"
 #include "Title.h"
 
-Game::Game() : isRunning(true) { // 构造函数
-}
+Game::Game() : isRunning(true) {} // 构造函数
 
 Game::~Game() { // 析构函数
+
+    saveData(); // 保存游戏数据
     clean(); // 清理资源
 }
 
@@ -88,6 +89,9 @@ void Game::init() { // 初始化游戏
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "TTF_OpenFont Error: %s", TTF_GetError());
         isRunning = false;
     }
+
+    // 载入游戏数据
+    loadData();
 
     // 初始化第一个屏幕（在图像/音频子系统初始化之后）
     // 这里可以根据需要切换不同的屏幕
@@ -294,7 +298,7 @@ SDL_Point Game::renderTextCentered(const std::string & text, float y, bool isTit
     return SDL_Point{ destRect.x + destRect.w, destRect.y }; // 返回文本右上角坐标
 }
 
-void Game::renderTextPoint(const std::string & text, int x, int y) {
+void Game::renderTextPoint(const std::string & text, int x, int y, bool isLeft) {
 
     SDL_Color color = {255, 255, 255, 255}; // 白色文字
     SDL_Surface* textSurface = TTF_RenderUTF8_Solid( // 选择字体
@@ -314,6 +318,11 @@ void Game::renderTextPoint(const std::string & text, int x, int y) {
     int textWidth = textSurface->w;
     int textHeight = textSurface->h;
 
+    // 判断文本对齐方式
+    if (isLeft == false) {
+        x = getScreenWidth() - x - textWidth; // 右对齐调整x坐标
+    }
+
     // 计算文本位置
     SDL_Rect destRect = {
         x,
@@ -328,4 +337,67 @@ void Game::renderTextPoint(const std::string & text, int x, int y) {
     // 清理资源
     SDL_DestroyTexture(textTexture);
     SDL_FreeSurface(textSurface);
+}
+
+void Game::insertHighScores(std::pair<int, std::string> scoreEntry) {
+
+    highScores.insert(scoreEntry); // 插入得分条目
+
+    while (highScores.size() > 10) { // 保持榜单最多10条
+        auto it = highScores.end();
+        --it; // 指向最后一个元素
+        highScores.erase(it); // 删除最低分
+    }
+}
+
+void Game::saveData() { // 保存游戏数据
+
+    // 打开数据文件
+    std::ofstream outFile("../assets/save.dat");
+    if (outFile.is_open() == false) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open save.dat for writing");
+        return;
+    }
+
+    // 保存得分数据
+    for (const auto &entry : highScores) {
+        outFile << entry.first << " " << entry.second << std::endl;
+    }
+
+    outFile.close();
+}
+
+void Game::loadData() { // 载入游戏数据
+    
+    std::ifstream inFile("../assets/save.dat");
+    if (inFile.is_open() == false) {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Failed to open save.dat for reading");
+        return;
+    }
+
+    highScores.clear(); // 清空现有数据
+
+    std::string line;
+    while (std::getline(inFile, line)) { // 按行读取整行数据，保证名字中含空格也能正确读取
+        if (line.empty()) continue; // 跳过空行
+
+        std::istringstream iss(line);
+        int score;
+        std::string name;
+
+        // 先读取分数，再读取剩余部分作为名称（含空格）
+        if (iss >> score) {
+            std::getline(iss >> std::ws, name); // std::ws跳过前导空格
+            highScores.insert(std::make_pair(score, name));
+        }
+
+        // 保持榜单最多10条（需确保容器是降序排序，删除最低分）
+        while (highScores.size() > 10) {
+            auto it = highScores.end();
+            --it; // 指向最后一个元素（最低分）
+            highScores.erase(it);
+        }
+    }
+
+    inFile.close();
 }

@@ -7,6 +7,9 @@
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_ttf.h>
 #include <string>
+#include <map>
+#include <fstream>
+#include <sstream>
 
 class Screen; // 前向声明，避免头文件循环依赖
 
@@ -37,11 +40,17 @@ public:
 
     // 渲染文字
     SDL_Point renderTextCentered(const std::string &text, float y, bool isTitle);
-    void renderTextPoint(const std::string &text, int x, int y);
+    void renderTextPoint(const std::string &text, int x, int y, bool isLeft = true);
 
     int getFinalScore() const { return finalScore; } // 获取最终得分
     void setFinalScore(const int &score) { finalScore = score; } // 设置最终得分
 
+    void insertHighScores(std::pair<int, std::string>); // 插入得分
+    std::multimap<int, std::string, std::greater<int>> &getHighScores() { return highScores; } // 获取得分榜单
+
+    void saveData(); // 保存游戏数据
+    void loadData(); // 载入游戏数据
+    
     // // 设置游戏难度
     // int getEnemySpawnRate() const { return enemySpawnRate; }
     // void setEnemySpawnRate(float rate) { enemySpawnRate = rate; } // 设置敌人生成速率
@@ -85,6 +94,8 @@ private:
     TTF_Font *textFont;
 
     int finalScore = 0; // 最终得分
+
+    std::multimap<int, std::string, std::greater<int>> highScores; // 存储得分榜单
 
     // // 难度：计划中的游戏参数
     // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）

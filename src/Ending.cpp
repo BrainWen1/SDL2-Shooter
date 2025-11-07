@@ -1,5 +1,6 @@
 #include "Ending.h"
 #include "Game.h"
+#include "Title.h"
 
 void Ending::init() { // 初始化结束屏幕
 
@@ -50,6 +51,12 @@ void Ending::handleEvents(SDL_Event* event) { // 处理结束屏幕的事件
                 // 按下回车键，结束输入
                 isTying = false;
                 SDL_StopTextInput(); // 停止文本输入
+
+                if (Name.empty()) {
+                    Name = "Anonymous"; // 如果名字为空，设置默认名字
+                }
+                game.insertHighScores(std::make_pair(game.getFinalScore(), Name)); // 插入得分榜单
+
             } else if (event->key.keysym.scancode == SDL_SCANCODE_BACKSPACE) {
                 
                 // 正确处理中文字符退格
@@ -69,6 +76,11 @@ void Ending::handleEvents(SDL_Event* event) { // 处理结束屏幕的事件
                     return;
                 }
             }
+        }
+    } else {
+        if (event->type == SDL_KEYDOWN) {
+                auto newScreen = new Title();
+                game.changeScreen(newScreen);
         }
     }
 }
@@ -98,8 +110,30 @@ void Ending::renderPhase1() { // 渲染结束屏幕的第一阶段
     
 }
 
-void Ending::renderPhase2() {
-    // 渲染结束屏幕的第二阶段
-    std::string message = "Game Over";
-    game.renderTextCentered(message, 0.5f, false);
+void Ending::renderPhase2() { // 渲染结束屏幕的第二阶段
+
+    game.renderTextCentered("Score List", 0.1f, true);
+
+    float posY = 0.2f * game.getScreenHeight();
+    float posX = 100;
+    size_t rank = 1;
+    for (auto &p : game.getHighScores()) {
+        std::string name = std::to_string(rank) + " " + p.second;
+        std::string score = std::to_string(p.first);
+
+        game.renderTextPoint(name, static_cast<int>(posX), static_cast<int>(posY)); // 默认左对齐
+        game.renderTextPoint(
+            score,
+            static_cast<int>(posX),
+            static_cast<int>(posY),
+            false // 右对齐
+        );
+        ++rank;
+        posY += 40.0f; // 每条记录间隔40像素
+    }
+
+    // 按任意键返回
+    if (timer <= flashInterval) { // 文字闪烁效果
+        game.renderTextCentered("Press Any-Key to Return to Title", 0.9f, false);
+    }
 }
