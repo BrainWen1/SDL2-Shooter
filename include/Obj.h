@@ -27,6 +27,7 @@ class PlayerProjectile {
 public:
     SDL_Texture* texture = nullptr; // 子弹纹理
     SDL_FPoint position = {0, 0}; // 子弹位置：浮点数坐标
+    SDL_FPoint direction = {0.0f, -1.0f}; // 子弹方向，默认向上
 
     int width = 0; // 子弹宽度
     int height = 0; // 子弹高度

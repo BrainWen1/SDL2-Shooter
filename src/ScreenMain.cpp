@@ -289,6 +289,15 @@ void ScreenMain::keyboardControls(float deltaTime) {
             player.lastShotTime = currentTime; // 更新上次射击时间
         }
     }
+
+    if (state[SDL_SCANCODE_K]) {
+        Uint32 currentTime = SDL_GetTicks();
+        if (currentTime - player.lastShotTime >= player.cooldownTime) {
+            // 向下射击
+            PlayerShootDown();
+            player.lastShotTime = currentTime; // 更新上次射击时间
+        }
+    }
 }
 
 void ScreenMain::PlayerShoot() { // 玩家射击
@@ -303,7 +312,28 @@ void ScreenMain::PlayerShoot() { // 玩家射击
     projectile->position.x = player.position.x + (player.width - projectile->width) / 2.0f;
     projectile->position.y = player.position.y;
 
+    // 设置方向向上
+    projectile->direction = SDL_FPoint{0.0f, -1.0f};
     // 将新子弹添加到子弹列表
+    playerProjectiles.push_back(projectile);
+
+    // 播放射击音效（与向下射击保持一致）
+    if (soundCache["player_shoot"] != nullptr) {
+        Mix_PlayChannel(0, soundCache["player_shoot"], 0);
+    }
+}
+
+
+void ScreenMain::PlayerShootDown() { // 玩家向下射击（K）
+
+    if (isdead) return;
+
+    PlayerProjectile *projectile = new PlayerProjectile(playerprojectile);
+    // 设置子弹初始位置：玩家底部中央
+    projectile->position.x = player.position.x + (player.width - projectile->width) / 2.0f;
+    projectile->position.y = player.position.y + player.height - projectile->height;
+    // 设置方向向下
+    projectile->direction = SDL_FPoint{0.0f, 1.0f};
     playerProjectiles.push_back(projectile);
 
     // 播放射击音效
@@ -315,11 +345,14 @@ void ScreenMain::PlayerShoot() { // 玩家射击
 void ScreenMain::updatePlayerProjectiles(float deltaTime) { // 更新玩家子弹位置
 
     for (auto it = playerProjectiles.begin(); it != playerProjectiles.end(); ) {
-        PlayerProjectile* projectile = *it; // 获取当前子弹指针
-        projectile->position.y -= projectile->speed * deltaTime; // 更新子弹位置，向上移动
+    PlayerProjectile* projectile = *it; // 获取当前子弹指针
+    // 依据方向更新位置（支持向上/向下）
+    projectile->position.x += projectile->direction.x * projectile->speed * deltaTime;
+    projectile->position.y += projectile->direction.y * projectile->speed * deltaTime;
 
         // 如果子弹移出屏幕顶部，则删除该子弹
-        if (projectile->position.y + projectile->height < 0) {
+        if (projectile->position.y + projectile->height < 0 ||
+            projectile->position.y > game.getScreenHeight()) {
 
             // 子弹越界 -> 销毁
             projectile->texture = nullptr; // 置空
@@ -378,7 +411,10 @@ void ScreenMain::renderPlayerProjectiles() { // 渲染玩家子弹
             projectile->width,
             projectile->height
         };
-        SDL_RenderCopy(game.getRenderer(), projectile->texture, nullptr, &rect);
+        // 根据方向旋转纹理：向上 0°，向下 180°
+        double angle = 0.0;
+        if (projectile->direction.y > 0.5f) angle = 180.0; // 向下
+        SDL_RenderCopyEx(game.getRenderer(), projectile->texture, nullptr, &rect, angle, nullptr, SDL_FLIP_NONE);
     }
 }
 

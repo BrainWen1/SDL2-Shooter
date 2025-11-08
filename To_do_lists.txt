@@ -1,0 +1,24 @@
+This file is created to record my to-do lists about some functions and optimizations
+that I want to implement in this SDL2-Shooter game project in the future.
+
+1. Implement a pause menu
+    - Add a pause functionality that allows players to pause the game.
+    - Create a pause menu with options like Resume, Restart, and Quit.
+
+2. Add more types of enemies
+    - Different features and attack patterns.
+
+3. Add more game skin for players
+    - Different spaceship designs and colors.
+
+4. Add more shooter patterns for players
+    - Different shooting directions. ------------------------------------doing
+    - Spread shot, laser beam, homing missiles, etc.
+
+5. Add more items
+    - Shield
+    - Power-ups
+
+6. Add Different Levels or Stages
+    - Design multiple levels with increasing difficulty.
+    - Introduce new enemy types and obstacles in each level.

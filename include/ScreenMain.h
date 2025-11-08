@@ -31,6 +31,7 @@ private:
     void keyboardControls(float deltaTime);
 
     void PlayerShoot(); // 玩家射击
+    void PlayerShootDown(); // 玩家向下射击（K键）
     void EnemyShoot(Enemy* enemy); // 敌人射击
 
     void updatePlayerProjectiles(float deltaTime); // 更新玩家子弹状态
