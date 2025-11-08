@@ -21,9 +21,11 @@ void Title::init() { // 初始化标题屏幕
     }
 }
 
-void Title::clean() {
-    // 清理标题屏幕
+void Title::clean() { // 清理标题屏幕
+
+    // 清理音乐资源
     if (bgm != nullptr) {
+        Mix_HaltMusic();
         Mix_FreeMusic(bgm);
         bgm = nullptr;
     }

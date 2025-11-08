@@ -3,8 +3,8 @@
 
 #include "Screen.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 #include <string>
-
 
 class Ending : public Screen {
 public:
@@ -27,6 +27,8 @@ private:
 
     float timer = 0.0f; // 计时器
     const float flashInterval = 0.5f; // 闪烁间隔
+
+    Mix_Music* bgm = nullptr; // 背景音乐
 };
 
 #endif // ENDING_H

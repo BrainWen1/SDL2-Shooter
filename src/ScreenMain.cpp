@@ -47,8 +47,8 @@ void ScreenMain::init() { // 初始化主屏幕
     SDL_QueryTexture(player.texture, nullptr, nullptr, &player.width, &player.height); // 查询纹理尺寸，并载入 player.width 和 player.height
     
     // 缩放玩家尺寸
-    player.width /= 4;
-    player.height /= 4;
+    player.width /= 5;
+    player.height /= 5;
    
     // 设置玩家初始位置：屏幕底部中央
     player.position.x = (game.getScreenWidth() - player.width) / 2.0f;
@@ -72,8 +72,8 @@ void ScreenMain::init() { // 初始化主屏幕
     enemyprojectile.texture = IMG_LoadTexture(game.getRenderer(), "../assets/image/bullet-2.png");
     SDL_QueryTexture(enemyprojectile.texture, nullptr, nullptr, &enemyprojectile.width, &enemyprojectile.height);
     // 缩放敌人子弹尺寸
-    enemyprojectile.width /= 4;
-    enemyprojectile.height /= 4;
+    enemyprojectile.width /= (5 / 2);
+    enemyprojectile.height /= (5 / 2);
 
     // 初始化爆炸效果纹理
     explosion.texture = IMG_LoadTexture(game.getRenderer(), "../assets/effect/explosion.png");
@@ -81,6 +81,9 @@ void ScreenMain::init() { // 初始化主屏幕
     
     // 计算爆炸效果总帧数
     explosion.totalFrames = explosion.width / explosion.height;
+
+    // 缩放爆炸效果尺寸
+    explosion.height *= 2;
 
     // 保持一帧是正方形
     explosion.width = explosion.height;
@@ -523,7 +526,6 @@ void ScreenMain::updateEnemyProjectiles(float deltaTime) { // 更新敌人子弹
             if (isdead != true && SDL_HasIntersection(&rect, &playerRect)) {
                 
                 player.health -= projectile->damage; // 减少玩家生命值
-                SDL_Log("sub health: %d", player.health);
 
                 // 播放受击音效
                 if (soundCache["hit"] != nullptr) {
@@ -629,7 +631,6 @@ void ScreenMain::updatePlayer() { // 更新玩家状态
             if (SDL_HasIntersection(&enemyRect, &playerRect)) {
                 
                 player.health -= enemy->collisionDamage; // 碰撞则减少玩家生命值
-                SDL_Log("sub health: %d", player.health);
                 enemy->health = 0; // 碰撞后敌人死亡
             }
         }
@@ -665,8 +666,8 @@ void ScreenMain::renderExplosions() { // 渲染爆炸效果
         SDL_Rect srcRect = {
             explosion->currentFrame * explosion->width, // 爆炸纹理是水平排列的帧
             0,
-            explosion->width,
-            explosion->height 
+            explosion->width / 2, // 根据之前的缩放调整宽度
+            explosion->height / 2
         };
         SDL_Rect destRect = {
             static_cast<int>(explosion->position.x),
@@ -796,7 +797,6 @@ void ScreenMain::playerGetItem(Item *item) { // 处理玩家获取道具的效�
         if (player.health > player.MaxHealth) { // 不超过最大生命值
            player.health = player.MaxHealth;
         }
-        SDL_Log("add health: %d", player.health);
     }
 }
 

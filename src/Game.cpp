@@ -41,6 +41,9 @@ void Game::init() { // 初始化游戏
         return;
     }
 
+    // 设置逻辑渲染尺寸，与窗口尺寸无关
+    SDL_RenderSetLogicalSize(renderer, screenWidth, screenHeight);
+
     // 初始化SDL_image（在加载任何纹理之前）
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
         SDL_LogError(SDL_LOG_CATEGORY_ERROR, "IMG_Init Error: %s", IMG_GetError());
@@ -198,6 +201,19 @@ void Game::handleEvent(SDL_Event* event) {
         if (event->type == SDL_QUIT) { // 处理退出事件
            isRunning = false;
         }
+
+        if (event->type == SDL_KEYDOWN) {
+            if (event->key.keysym.scancode == SDL_SCANCODE_F4) { // 切换到全屏模式
+                
+                isFullscreen = !isFullscreen;
+                if (isFullscreen == false) {
+                    SDL_SetWindowFullscreen(window, 0); // 切换到窗口模式
+                } else {
+                    SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN); // 切换到全屏模式
+                }
+            }
+        }
+
         currentScreen->handleEvents(event);
     }
 }

@@ -4,6 +4,14 @@
 
 void Ending::init() { // 初始化结束屏幕
 
+    // 播放背景音乐
+    bgm = Mix_LoadMUS("../assets/music/homepage.ogg");
+    if (bgm != nullptr) {
+        Mix_PlayMusic(bgm, -1); // 循环播放背景音乐
+    } else {
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Mix_LoadMUS Error: %s", Mix_GetError());
+    }
+
     // 启动文本输入
     if (SDL_IsTextInputActive() == SDL_FALSE) {
         SDL_StartTextInput();
@@ -17,6 +25,13 @@ void Ending::clean() { // 清理结束屏幕
 
     if (SDL_IsTextInputActive() == SDL_TRUE) {
         SDL_StopTextInput(); // 停止文本输入
+    }
+
+    // 清理背景音乐
+    if (bgm != nullptr) {
+        Mix_HaltMusic();
+        Mix_FreeMusic(bgm);
+        bgm = nullptr;
     }
 }
 
@@ -77,8 +92,8 @@ void Ending::handleEvents(SDL_Event* event) { // 处理结束屏幕的事件
                 }
             }
         }
-    } else {
-        if (event->type == SDL_KEYDOWN) {
+    } else { // 按任意键除了F4, 返回标题屏幕
+        if (event->type == SDL_KEYDOWN && event->key.keysym.scancode != SDL_SCANCODE_F4) {
                 auto newScreen = new Title();
                 game.changeScreen(newScreen);
         }
@@ -112,6 +127,7 @@ void Ending::renderPhase1() { // 渲染结束屏幕的第一阶段
 
 void Ending::renderPhase2() { // 渲染结束屏幕的第二阶段
 
+    // 渲染得分榜单
     game.renderTextCentered("Score List", 0.1f, true);
 
     float posY = 0.2f * game.getScreenHeight();
@@ -132,7 +148,6 @@ void Ending::renderPhase2() { // 渲染结束屏幕的第二阶段
         posY += 40.0f; // 每条记录间隔40像素
     }
 
-    // 按任意键返回
     if (timer <= flashInterval) { // 文字闪烁效果
         game.renderTextCentered("Press Any-Key to Return to Title", 0.9f, false);
     }

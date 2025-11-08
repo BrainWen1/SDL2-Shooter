@@ -97,6 +97,8 @@ private:
 
     std::multimap<int, std::string, std::greater<int>> highScores; // 存储得分榜单
 
+    bool isFullscreen = false; // 是否全屏
+
     // // 难度：计划中的游戏参数
     // float enemySpawnRate = 0.7f; // 敌人生成速率（每秒）
     // float enemySpeed = 100.0f; // 敌人移动速度（像素/秒）
